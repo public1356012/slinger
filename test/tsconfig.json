@@ -1,0 +1,23 @@
+{
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "target": "ES2019",
+        "module": "commonjs",
+        "baseUrl": ".",
+        "rootDirs": [
+            ".",
+            "../src",
+        ],
+        "types": [
+            "mocha",
+            "node",
+        ],
+        "outDir": "../dist",
+        "noEmit": false,
+        "preserveWatchOutput": true,
+    },
+    "include": [
+        "**/*.ts",
+        "**/*.js",
+    ],
+}
