@@ -10,5 +10,6 @@
     },
     "files": [
         "main.ts",
+        "worker.ts",
     ],
 }
