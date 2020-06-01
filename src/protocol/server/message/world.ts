@@ -41,6 +41,7 @@ const MAX_PACKAGE_SIZE_VALUE = 2 ** 8;
 
 const MESSAGE_HEAD_SIZE = UINT8;
 const PACKAGE_SIZE_SIZE = UINT8;
+const TOTAL_USERNAME_LENGTH_SIZE = UINT16;
 
 export const TICK_NUMBER_SIZE     = UINT16;
 export const PROJECTILE_TYPE_SIZE = UINT8;
@@ -507,7 +508,7 @@ export function newPlayers(newPlayers: NewPlayer[]) {
 
     const usernameLengths = new Array(numberOfNewPlayers);
 
-    let usernameLengthsSum = 0;
+    let totalUsernameLength = 0;
 
     // Get username lengths
     for (let i = 0; i < numberOfNewPlayers; ++i) {
@@ -515,7 +516,7 @@ export function newPlayers(newPlayers: NewPlayer[]) {
 
         usernameLengths[i] = usernameLength;
 
-        usernameLengthsSum += usernameLength;
+        totalUsernameLength += usernameLength;
     }
 
     let bufferOffset = 0;
@@ -525,13 +526,14 @@ export function newPlayers(newPlayers: NewPlayer[]) {
     const bufferSize =
         numberOfMessages * (
             MESSAGE_HEAD_SIZE +
-            PACKAGE_SIZE_SIZE
+            PACKAGE_SIZE_SIZE +
+            TOTAL_USERNAME_LENGTH_SIZE
         ) +
         numberOfNewPlayers * (
             PLAYER_ID_SIZE +
             USERNAME_LENGTH_SIZE
         ) +
-        usernameLengthsSum;
+        totalUsernameLength;
 
     const buffer = Buffer.alloc(bufferSize);
 
@@ -542,6 +544,9 @@ export function newPlayers(newPlayers: NewPlayer[]) {
 
         buffer.writeUInt8(NEW_PLAYERS_HEAD, bufferOffset++);
         buffer.writeUInt8(packageSize, bufferOffset++);
+
+        buffer.writeUInt16LE(totalUsernameLength, bufferOffset);
+        bufferOffset += TOTAL_USERNAME_LENGTH_SIZE;
 
         for (let j = 0; j < packageSize; ++j) {
             const newPlayer = newPlayers[j];

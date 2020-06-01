@@ -155,6 +155,7 @@ Types + subtypes + options:
             + {Object | Item | Projectile} - object/item/projectile that disappeared
     - 9 (NEW_PLAYERS) - new players
         + {uint8} - number of players
+        + {uint16} - total username length
             + {PlayerId} - player id
             + {uint8} - username length (byte wise)
             + {UTF-8} - username
@@ -167,10 +168,10 @@ Types + subtypes + options:
     - 0 (PING) - ping player
     - 1 (PONG) - respond to client's ping
     - 2 (ACK) - accept connection
+        + {uint8} - username length (byte wise)
         + {float} - zone size
         + {uint8} - tick rate
         + {PlayerId} - player ID
-        + {uint8} - username length (byte wise)
         + {UTF-8} - assigned username (not necessarily requested username in case of a name conflict)
     - 3 (DISCONNECT) - disconnect player
         + {uint8} - reason code

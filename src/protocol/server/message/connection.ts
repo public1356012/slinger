@@ -58,10 +58,10 @@ export function ack(zoneSize: number, tickRate: number, playerId: number, userna
     const buffer = Buffer.alloc(bufferSize);
 
     buffer.writeUInt8(ACK_HEAD, 0);
-    buffer.writeFloatLE(zoneSize, 1);
-    buffer.writeUInt8(tickRate, 5);
-    buffer.writeUInt16LE(playerId, 6);
-    buffer.writeUInt8(usernameLength, 8);
+    buffer.writeUInt8(usernameLength, 1);
+    buffer.writeFloatLE(zoneSize, 2);
+    buffer.writeUInt8(tickRate, 6);
+    buffer.writeUInt16LE(playerId, 7);
     buffer.write(username, 9);
 
     return buffer;
