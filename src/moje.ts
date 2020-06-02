@@ -61,7 +61,7 @@ export abstract class Thing {
         // console.log((x2 - this.x) * (x2 - this.x) + (y2 - this.y) * (y2 - this.y));
         // console.log(this.size * this.size + r * r)
         //console.log(Math.sqrt((x2 - this.x) * (x2 - this.x) + (y2 - this.y) * (y2 - this.y)));
-        console.log(Math.sqrt((x2 - this.x) * (x2 - this.x) + (y2 - this.y) * (y2 - this.y)));
+        ///console.log(Math.sqrt((x2 - this.x) * (x2 - this.x) + (y2 - this.y) * (y2 - this.y)));
 
         if (Math.sqrt((x2 - this.x) * (x2 - this.x) + (y2 - this.y) * (y2 - this.y)) <= (this.size + r))
             return true;
@@ -104,11 +104,12 @@ export class Obstacle extends Thing {
 }
 export class Projectile extends Thing {
     public damage=2;
-    public ttl = 10;
+    public ttl = 20;
     public speed=70;
     public selfId=0;
-    constructor(public id: number, selfId: number, public x: number, public y: number, public size: number) {
+    constructor(public id: number, selfId: number, public x: number, public y: number, public size: number, angle: number) {
         super(id, 3, x, y, 3);
+        this.angle = angle;
         this.selfId = selfId;
     }
 }

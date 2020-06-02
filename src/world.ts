@@ -83,6 +83,8 @@ export class World {
             //console.log(projectile.x, projectile.y);
             projectile.ttl--;
             if (projectile.ttl <= 0) {
+                console.log(projectile.x);
+                console.log(projectile.y);
                 this.projectiles.splice(i, 1);
                 this.clusters[Math.floor(projectile.x / this.zoneSize) + 1][Math.floor(projectile.y / this.zoneSize) + 1].addDespawn(projectile.selfId);
                 delete this.clusters[Math.floor(projectile.x / this.zoneSize) + 1][Math.floor(projectile.y / this.zoneSize) + 1].projectiles[projectile.selfId];
@@ -130,7 +132,7 @@ export class World {
         for (const key in this.players) {
             const player = this.players[key];
             if (player.useIntention) {
-                this.projectiles.push(new Projectile(player.id, this.projId, player.x, player.y, 3));
+                this.projectiles.push(new Projectile(player.id, this.projId, player.x, player.y, 3, player.angle));
                 this.clusters[Math.floor(player.x / this.zoneSize) + 1][Math.floor(player.y / this.zoneSize) + 1].addNewProjectile(this.projId, player.id, player.angle);
                 this.clusters[Math.floor(player.x / this.zoneSize) + 1][Math.floor(player.y / this.zoneSize) + 1].addProjectile(this.projId++, player.x, player.y, player.angle);//
                 player.useIntention = false;
