@@ -5,7 +5,7 @@ import { release } from 'os';
 
 
 export abstract class Thing {
-    public speed = 10;
+    public speed = 2;
     public angle=0;
     constructor(public id: number, public type: number, public x: number, public y: number, public size: number) {
     }
@@ -65,7 +65,7 @@ export abstract class Thing {
     }
 }
 export class Player extends Thing {
-    public hp=111111;
+    public hp=11;
     public direction=0;
     public moveIntention=false;
     public useIntention=false;
@@ -99,8 +99,10 @@ export class Projectile extends Thing {
     public damage=2;
     public ttl = 5;
     public speed=0;
-    constructor(public id: number, public x: number, public y: number, public size: number) {
+    public selfId=0;
+    constructor(public id: number, selfId: number, public x: number, public y: number, public size: number) {
         super(id, 3, x, y, size);
+        this.selfId = selfId;
     }
 }
 

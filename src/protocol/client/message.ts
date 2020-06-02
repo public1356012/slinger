@@ -20,7 +20,7 @@ export function handleClientMessage(
     bufferOffset: number,
     eventEmitter: ClientEventEmitter,
 ): number {
-    const byte = buffer.readUInt8(0);
+    const byte = buffer.readUInt8(bufferOffset);
 
     const messageType    = applyMask(byte, MESSAGE_TYPE_MASK, MESSAGE_TYPE_OFFSET);
     const messageSubtype = applyMask(byte, MESSAGE_SUBTYPE_MASK, MESSAGE_SUBTYPE_OFFSET);

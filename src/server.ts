@@ -17,7 +17,7 @@ export interface Client {
 }
 
 export class Client extends EventEmitter {
-    private tcpSocket: net.Socket;
+    public tcpSocket: net.Socket;
     public protocol: ClientEventEmitter = new EventEmitter();
 
     constructor(tcpSocket: net.Socket) {
@@ -51,6 +51,10 @@ export class Client extends EventEmitter {
 
         this.tcpSocket.on('close', (err) => {
             this.emit('close', err);
+        });
+
+        this.tcpSocket.on('error', (err) => {
+            console.log("Client-socket error.");
         });
     }
 

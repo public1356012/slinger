@@ -7,7 +7,7 @@ buff2.writeUInt8(0b00000000);
 buff2.writeUInt8(0b10110000, 1);
 const dataSender = setInterval(() => {
     client.write(buff2);
-}, 1000);
+}, 100);
 
 const client = net.createConnection(4545, () => {
     console.log('Connection made!');
@@ -42,7 +42,6 @@ function ack2(buffer) {
 function ack(buffer) {
     const head = buffer.readUInt8(0);
     const siz = buffer.readUInt8(1);
-    const sizer = buffer.readUInt16LE(2);
     console.log(head, siz);
     if (head == 5) {
         for (let i = 0; i < siz; i++) {
@@ -53,6 +52,8 @@ function ack(buffer) {
         }
     }
     if (head == 9) {
+        const sizer = buffer.readUInt16LE(2);
+        console.log(head, siz);
         let count = 4;
         for (let i = 0; i < siz; i++) {
             const playerId = buffer.readUInt16LE(count);
