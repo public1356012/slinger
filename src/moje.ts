@@ -3,9 +3,9 @@ import { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } from 'constants';
 import { readlink } from 'fs';
 import { release } from 'os';
 
-
+const tickRate = 1000 / 30;
 export abstract class Thing {
-    public speed = 2;
+    public speed = 20;
     public angle=0;
     constructor(public id: number, public type: number, public x: number, public y: number, public size: number) {
     }
@@ -17,10 +17,10 @@ export abstract class Thing {
         return [this.x, this.y];
     }
     public moe(angle: number): number[] {
-        return [this.x + this.speed * Math.cos(angle), this.y + this.speed * Math.sin(angle)];
+        return [this.x + this.speed * Math.cos(angle) / tickRate, this.y + this.speed * Math.sin(angle) / tickRate];
     }
     public move(): number[] {//different for player.
-        return [this.x + this.speed * Math.cos(this.angle), this.y + this.speed * Math.sin(this.angle)];
+        return [this.x + this.speed * Math.cos(this.angle) / tickRate, this.y + this.speed * Math.sin(this.angle) / tickRate];
     }
     public inside(x1: number, y1: number, x2: number, y2: number, r: number): boolean {
         // const a = (y1 - this.y) / (x1 - this.x);
@@ -58,25 +58,32 @@ export abstract class Thing {
         //     if (((finalX - curX) * (finalX - newX) <= 0) && ((finalY - curY) * (finalY - newY) <= 0))
         //         return true;
         // }
-        if ((x2 - this.x) * (x2 - this.x) + (y2 - this.y) * (y2 - this.y) <= this.size * this.size + r * r)
+        // console.log((x2 - this.x) * (x2 - this.x) + (y2 - this.y) * (y2 - this.y));
+        // console.log(this.size * this.size + r * r)
+        //console.log(Math.sqrt((x2 - this.x) * (x2 - this.x) + (y2 - this.y) * (y2 - this.y)));
+        console.log(Math.sqrt((x2 - this.x) * (x2 - this.x) + (y2 - this.y) * (y2 - this.y)));
+
+        if (Math.sqrt((x2 - this.x) * (x2 - this.x) + (y2 - this.y) * (y2 - this.y)) <= (this.size + r))
+            return true;
+        if (Math.sqrt((x1 - this.x) * (x1 - this.x) + (y1 - this.y) * (y1 - this.y)) <= (this.size + r))
             return true;
         return false;
 
     }
 }
 export class Player extends Thing {
-    public hp=11;
+    public hp=1;
     public direction=0;
     public moveIntention=false;
     public useIntention=false;
     constructor(public id: number, public x: number, public y: number, public size: number) {
-        super(id, 1, x, y, size);
+        super(id, 1, x, y, 20);
     }
     public DIE() {
         // Tell the loved ones.
     }
     public move(): number[] {
-        return [this.x + this.speed * Math.cos(this.angle + this.direction), this.y + this.speed * Math.sin(this.angle + this.direction)];
+        return [this.x + this.speed * Math.cos(this.angle + this.direction) / tickRate, this.y + this.speed * Math.sin(this.angle + this.direction) / tickRate];
     }
     public takeDamage(damage: number): boolean {
         this.hp -= damage;
@@ -97,11 +104,11 @@ export class Obstacle extends Thing {
 }
 export class Projectile extends Thing {
     public damage=2;
-    public ttl = 5;
-    public speed=0;
+    public ttl = 10;
+    public speed=70;
     public selfId=0;
     constructor(public id: number, selfId: number, public x: number, public y: number, public size: number) {
-        super(id, 3, x, y, size);
+        super(id, 3, x, y, 3);
         this.selfId = selfId;
     }
 }
@@ -169,34 +176,3 @@ export class Projectile extends Thing {
 //         break;
 //     player.switchPosition(x2, y2);
 // }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-const client = redis.createClient({
-    port: 6379,
-    host: 'localhost',
-});
-
-client.set("blablabla", "44");
-
-client.get("blablabla", (err, value) => console.log(`blablabla = ${value} :)`));
-
-client.quit();
-

@@ -1,11 +1,13 @@
 import { Player, Obstacle, Projectile } from './moje';
-import { newPlayers, positions, Position, NewPlayer, AnonymousProjectile, IdentifiableProjectile, Despawn} from './protocol/server/message/world';
+import { newPlayers, positions, Position, NewPlayer, AnonymousProjectile, IdentifiableProjectile, Despawn, Elimination} from './protocol/server/message/world';
+import { forgeProjectile } from './protocol/entity';
 export class Cluster {
     public newPlayers: { [id: number]: NewPlayer } = {};
     public positions: { [id: number]: Position } = {};
     public projectiles: { [id: number]: AnonymousProjectile } = {};
     public projectilIden: { [id: number]: IdentifiableProjectile } = {};
     public despawn: { [id: number]: Despawn } = {};
+    public elimins: { [id: number]: Elimination } = {};
     public xl: number;
     public xu: number;
     public yl: number;
@@ -16,8 +18,11 @@ export class Cluster {
         this.yl = yl;
         this.yu = yu;
     }
+    public addElimination(idVictim: number, idKiller: number) {
+        this.elimins[idVictim] = { victim: idVictim, villain: idKiller, weaponType: 0 };
+    }
     public addDespawn(id: number) {
-        this.despawn[id] = { entity: id };
+        this.despawn[id] = { entity: forgeProjectile(0, id) };
     }
     public addNewPlayer(id: number, name: string) {
         this.newPlayers[id] = { playerId: id, username: name };
@@ -26,8 +31,6 @@ export class Cluster {
         this.projectiles[id] = { projectileId: id, projectileType: 10, angle: angle, x: x, y: y };
     }
     public addNewProjectile(id: number, playerId: number, angle: number) {
-        console.log(id, playerId, angle);
-        console.log(this.projectilIden);
         this.projectilIden[id] = { projectileType: 0, projectileId: id, playerId: playerId, angle: angle };
     }
     public addPosition(id: number, x: number, y: number) {
@@ -54,16 +57,19 @@ export class World {
     public clusters: Cluster[][] = [];
     public zoneSize = 1000;
     public projId = 2;
+    public tickRate = 0;
     public oldNewsProjectiles() {
         for (const clust of this.clusters) {
             for (const er of clust) {
                 er.projectilIden = {};
                 er.despawn = {};
+                er.elimins = {};
             }
         }
     }
-    public constructor(zoneSize: number) {
+    public constructor(zoneSize: number, tickRate: number) {
         this.zoneSize = zoneSize;
+        this.tickRate = tickRate;
         this.clusters[0] = [];
         this.clusters[1] = [];
         this.clusters[1].push(new Cluster(0, zoneSize, -zoneSize, 0));
@@ -78,19 +84,25 @@ export class World {
             projectile.ttl--;
             if (projectile.ttl <= 0) {
                 this.projectiles.splice(i, 1);
+                this.clusters[Math.floor(projectile.x / this.zoneSize) + 1][Math.floor(projectile.y / this.zoneSize) + 1].addDespawn(projectile.selfId);
                 delete this.clusters[Math.floor(projectile.x / this.zoneSize) + 1][Math.floor(projectile.y / this.zoneSize) + 1].projectiles[projectile.selfId];
                 continue;
             }
-            const [x2, y2] = projectile.move();
             const [x, y] = projectile.position();
+            const [x2, y2] = projectile.move();
             let collision = false;
+            //console.log(x, y, x2, y2);
             for (const key in this.players) {
                 const player = this.players[key];
-                if (player.id != projectile.id && player.inside(x, y, x2, y2, 1)) {
+                if (player.id != projectile.id && player.inside(x, y, x2, y2, projectile.size)) {
                     // console.log("AAAAAAAAAAAAAAA");
                     //  console.log(player.hp);
-                    if (player.takeDamage(projectile.damage))
-                        delete this.players[key];
+                    console.log(player.hp);
+                    if (player.takeDamage(projectile.damage)) {
+                        this.clusters[Math.floor(player.x / this.zoneSize) + 1][Math.floor(player.y / this.zoneSize) + 1].addElimination(player.id, projectile.id);
+                        this.removePlayer(player.id);
+                        //delete this.players[key];
+                    }
                     this.projectiles.splice(i, 1);
                     this.clusters[Math.floor(projectile.x / this.zoneSize) + 1][Math.floor(projectile.y / this.zoneSize) + 1].addDespawn(projectile.selfId);
                     delete this.clusters[Math.floor(projectile.x / this.zoneSize) + 1][Math.floor(projectile.y / this.zoneSize) + 1].projectiles[projectile.selfId]; //
@@ -101,9 +113,10 @@ export class World {
             if (collision)
                 break;
             for (const obstacle of this.obstacles) {
-                if (obstacle.inside(x, y, x2, y2, 1)) {
+                if (obstacle.inside(x, y, x2, y2, projectile.size)) {
                     //Destroy self.
                     this.projectiles.splice(i, 1);
+                    this.clusters[Math.floor(projectile.x / this.zoneSize) + 1][Math.floor(projectile.y / this.zoneSize) + 1].addDespawn(projectile.selfId);
                     delete this.clusters[Math.floor(projectile.x / this.zoneSize) + 1][Math.floor(projectile.y / this.zoneSize) + 1].projectiles[projectile.selfId];//
                     collision = true;
                     break;
@@ -116,10 +129,9 @@ export class World {
 
         for (const key in this.players) {
             const player = this.players[key];
-            console.log(player.x, player.y);
             if (player.useIntention) {
-                this.projectiles.push(new Projectile(player.id, this.projId, player.x, player.y, 4));
-                this.clusters[Math.floor(player.x / this.zoneSize) + 1][Math.floor(player.y / this.zoneSize) + 1].addNewProjectile(this.projId++, player.id, player.angle);
+                this.projectiles.push(new Projectile(player.id, this.projId, player.x, player.y, 3));
+                this.clusters[Math.floor(player.x / this.zoneSize) + 1][Math.floor(player.y / this.zoneSize) + 1].addNewProjectile(this.projId, player.id, player.angle);
                 this.clusters[Math.floor(player.x / this.zoneSize) + 1][Math.floor(player.y / this.zoneSize) + 1].addProjectile(this.projId++, player.x, player.y, player.angle);//
                 player.useIntention = false;
             }
@@ -129,11 +141,14 @@ export class World {
             const [x, y] = player.position();
             let death = false;
             for (const [i, projectile] of this.projectiles.entries()) { //
-                if (player.id != projectile.id && projectile.inside(x, y, x2, y2, 1)) {
+                if (player.id != projectile.id && projectile.inside(x, y, x2, y2, player.size)) {
                     if (player.takeDamage(projectile.damage)) {
                         death = true;
-                        delete this.players[key];
+                        this.clusters[Math.floor(player.x / this.zoneSize) + 1][Math.floor(player.y / this.zoneSize) + 1].addElimination(player.id, projectile.id);
+                        this.removePlayer(player.id);
+                        //delete this.players[key];
                     }
+                    this.clusters[Math.floor(projectile.x / this.zoneSize) + 1][Math.floor(projectile.y / this.zoneSize) + 1].addDespawn(projectile.selfId);
                     delete this.clusters[Math.floor(projectile.x / this.zoneSize) + 1][Math.floor(projectile.y / this.zoneSize) + 1].projectiles[projectile.selfId]; //
                     this.projectiles.splice(i, 1);
                 }
@@ -141,7 +156,7 @@ export class World {
             if (death)
                 break;
             for (const obstacle of this.obstacles) {
-                if (obstacle.inside(x, y, x2, y2, 1)) {
+                if (obstacle.inside(x, y, x2, y2, player.size)) {
                     death = true;
                     break;
                 }
@@ -164,7 +179,6 @@ export class World {
                 this.clusters[temperX][temperY].addPosition(player.id, x2, y2);
             }
             player.switchPosition(x2, y2);
-            console.log(player.x, player.y);
             player.moveIntention = false;
         }
     }
@@ -175,7 +189,7 @@ export class World {
         this.clusters[Math.floor(tempX / this.zoneSize) + 1][Math.floor(tempY / this.zoneSize) + 1].addNewPlayer(id, name);
         this.clusters[Math.floor(tempX / this.zoneSize) + 1][Math.floor(tempY / this.zoneSize) + 1].addPosition(id, tempX, tempY);
         //this.clusters[Math.floor(tempX / this.zoneSize) + 1][Math.floor(tempY / this.zoneSize) + 1].addPosition(id, tempX, tempY);
-        this.players[id] = (new Player(id, tempX, tempY, 3));
+        this.players[id] = (new Player(id, tempX, tempY, 20));
     }
     public removePlayer(id: number) {
         delete this.clusters[Math.floor(this.players[id].x / this.zoneSize) + 1][Math.floor(this.players[id].y / this.zoneSize) + 1].newPlayers[id];

@@ -3,11 +3,11 @@ const net = require('net');
 
 const buff2 = Buffer.alloc(2);
 
-buff2.writeUInt8(0b00000000);
-buff2.writeUInt8(0b10110000, 1);
-const dataSender = setInterval(() => {
-    client.write(buff2);
-}, 100);
+// buff2.writeUInt8(0b00000000);
+// buff2.writeUInt8(0b10110000, 1);
+// const dataSender = setInterval(() => {
+//     client.write(buff2);
+// }, 100);
 
 const client = net.createConnection(4545, () => {
     console.log('Connection made!');

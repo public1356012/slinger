@@ -4,14 +4,15 @@ import options from './options';
 import { Server, Client } from './server';
 import { World, Cluster} from './world';
 import { ack, disconnect } from './protocol/server/message/connection';
-import { newPlayers, positions, Position, NewPlayer, tick, aimAngles, Angle, AnonymousProjectile, anonymousProjectiles, IdentifiableProjectile, identifiableProjectiles, Despawn, despawns} from './protocol/server/message/world';
+import { newPlayers, positions, Position, NewPlayer, tick, aimAngles, Angle, AnonymousProjectile, anonymousProjectiles, IdentifiableProjectile, identifiableProjectiles, Despawn, despawns, Elimination, eliminations} from './protocol/server/message/world';
 import { Direction } from './protocol/client/message/action';
 import { Player } from './moje';
 
 const server = new Server(options.p);
 const clients: { [id: number]: Client } = {};
+const tickRate = 1000 / 30;
 const zoneSize = 1000;
-const world: World = new World(zoneSize);
+const world: World = new World(zoneSize, tickRate);
 let currId = 1;
 let tickN = 0;
 server.on('client', (client) => {
@@ -19,9 +20,19 @@ server.on('client', (client) => {
     const id = currId;
     currId++;
     client.protocol.on('invalidByte', () => {
-        world.removePlayer(id);
+        if (!(id in world.players))
+            world.removePlayer(id);
         delete clients[id];
         console.log(`Client (${uusername}) disconnected without notice`);
+    });
+    client.protocol.on('action.item', (action) => {
+        if (!(id in world.players)) {
+            delete clients[id];
+            client.close();
+        }
+        else {
+            world.use(id);
+        }
     });
     client.protocol.once('connection.connect', (username) => {
         clients[id] = client;
@@ -29,7 +40,7 @@ server.on('client', (client) => {
         uusername = username;
         const added = username + id;
         world.addPlayer(id, added);
-        const fajneDane = ack(100, 30, id, added);
+        const fajneDane = ack(zoneSize, tickRate, id, added);
 
         client.send(fajneDane);
     });
@@ -48,7 +59,6 @@ server.on('client', (client) => {
             client.close();
         }
         else {
-            console.log(direction);
             switch (direction) {
                 case 0: world.changeVal(0, id, 0);
                     break;
@@ -78,7 +88,6 @@ server.on('client', (client) => {
             client.close();
         }
         else {
-            console.log(angle);
             world.changeVal(1, id, angle);
         }
     });
@@ -89,7 +98,8 @@ server.on('client', (client) => {
     });
 
     client.on('close', () => {
-        world.removePlayer(id);
+        if (world.players[id] != undefined)
+            world.removePlayer(id);
         delete clients[id];
         console.log(`Client (${uusername}) disconnected without notice`);
     });
@@ -107,8 +117,8 @@ setInterval(() => {
     world.mainPart();
     for (const key in clients) {
         if (!(key in world.players)) {
-            delete clients[key];
             clients[key].close();
+            delete clients[key];
             continue;
         }
         const client = clients[key];
@@ -118,6 +128,7 @@ setInterval(() => {
         const proj: AnonymousProjectile[] = [];
         const projId: IdentifiableProjectile[] = [];
         const despawn: Despawn[] = [];
+        const elimins: Elimination[] = [];
         // for (const player in world.players)
         //     pos.push({ playerId: world.players[player].id, x: world.players[player].x, y: world.players[player].y });
         //newP.push({ playerId: world.players[player].id, x: world.players[player].x ]);
@@ -132,6 +143,8 @@ setInterval(() => {
             projId.push(neew.projectilIden[projectile]);
         for (const desP in neew.despawn)
             despawn.push(neew.despawn[desP]);
+        for (const elimin in neew.elimins)
+            elimins.push(neew.elimins[elimin]);
         const ang = aimAngles([{ angle: thisPlayer.angle, playerId: thisPlayer.id }]);
         //console.log(pos);
         const fajneDae = positions(pos);
@@ -139,7 +152,10 @@ setInterval(() => {
         const ticker = tick(tickN);
         client.send(faneDae);
         client.send(fajneDae);
-        console.log(projId);
+        if (elimins[0] != undefined) {
+            const spokoDan = eliminations(elimins);
+            client.send(spokoDan);
+        }
         if (despawn[0] != undefined) {
             const spokoDan = despawns(despawn);
             client.send(spokoDan);
@@ -158,6 +174,6 @@ setInterval(() => {
     world.oldNewsProjectiles();
     tickN++;
     tickN = tickN % 1000;
-}, 1000 / 6);
+}, tickRate);
 //tu wysyłaj.
 
