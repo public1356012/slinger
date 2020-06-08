@@ -37,10 +37,11 @@ const UINT16 = 2;
 const INT32  = 4;
 const FLOAT  = 4;
 
-const MAX_PACKAGE_SIZE_VALUE = 2 ** 8;
+const MAX_PACKAGE_SIZE_VALUE = 2 ** 8 - 1;
 
 const MESSAGE_HEAD_SIZE = UINT8;
 const PACKAGE_SIZE_SIZE = UINT8;
+const MAX_PACKAGE_SIZE = 2 ** 8;
 const TOTAL_USERNAME_LENGTH_SIZE = UINT16;
 
 export const TICK_NUMBER_SIZE     = UINT16;
@@ -140,7 +141,7 @@ export function identifiableProjectiles(projectiles: IdentifiableProjectile[]) {
 
     let bufferOffset = 0;
 
-    const numberOfMessages = Math.floor(numberOfProjectiles / MAX_PACKAGE_SIZE_VALUE) + 1;
+    const numberOfMessages = Math.floor(numberOfProjectiles / MAX_PACKAGE_SIZE) + 1;
 
     const bufferSize =
         numberOfMessages * (
@@ -190,7 +191,7 @@ export function anonymousProjectiles(projectiles: AnonymousProjectile[]) {
 
     let bufferOffset = 0;
 
-    const numberOfMessages = Math.floor(numberOfProjectiles / MAX_PACKAGE_SIZE_VALUE) + 1;
+    const numberOfMessages = Math.floor(numberOfProjectiles / MAX_PACKAGE_SIZE) + 1;
 
     const bufferSize =
         numberOfMessages * (
@@ -244,7 +245,7 @@ export function hits(hits: Hit[]) {
 
     let bufferOffset = 0;
 
-    const numberOfMessages = Math.floor(numberOfHits / MAX_PACKAGE_SIZE_VALUE) + 1;
+    const numberOfMessages = Math.floor(numberOfHits / MAX_PACKAGE_SIZE) + 1;
 
     const bufferSize =
         numberOfMessages * (
@@ -290,7 +291,7 @@ export function items(items: Item[]) {
 
     let bufferOffset = 0;
 
-    const numberOfMessages = Math.floor(numberOfItems / MAX_PACKAGE_SIZE_VALUE) + 1;
+    const numberOfMessages = Math.floor(numberOfItems / MAX_PACKAGE_SIZE) + 1;
 
     const bufferSize =
         numberOfMessages * (
@@ -336,7 +337,7 @@ export function positions(positions: Position[]) {
 
     let bufferOffset = 0;
 
-    const numberOfMessages = Math.floor(numberOfPositions / MAX_PACKAGE_SIZE_VALUE) + 1;
+    const numberOfMessages = Math.floor(numberOfPositions / MAX_PACKAGE_SIZE) + 1;
 
     const bufferSize =
         numberOfMessages * (
@@ -382,7 +383,7 @@ export function aimAngles(angles: Angle[]) {
 
     let bufferOffset = 0;
 
-    const numberOfMessages = Math.floor(numberOfAngles / MAX_PACKAGE_SIZE_VALUE) + 1;
+    const numberOfMessages = Math.floor(numberOfAngles / MAX_PACKAGE_SIZE) + 1;
 
     const bufferSize =
         numberOfMessages * (
@@ -424,7 +425,7 @@ export function spawns(spawns: Spawn[]) {
 
     let bufferOffset = 0;
 
-    const numberOfMessages = Math.floor(numberOfSpawns / MAX_PACKAGE_SIZE_VALUE) + 1;
+    const numberOfMessages = Math.floor(numberOfSpawns / MAX_PACKAGE_SIZE) + 1;
 
     const bufferSize =
         numberOfMessages * (
@@ -470,7 +471,7 @@ export function despawns(despawns: Despawn[]) {
 
     let bufferOffset = 0;
 
-    const numberOfMessages = Math.floor(numberOfDespawns / MAX_PACKAGE_SIZE_VALUE) + 1;
+    const numberOfMessages = Math.floor(numberOfDespawns / MAX_PACKAGE_SIZE) + 1;
 
     const bufferSize =
         numberOfMessages * (
@@ -521,7 +522,7 @@ export function newPlayers(newPlayers: NewPlayer[]) {
 
     let bufferOffset = 0;
 
-    const numberOfMessages = Math.floor(numberOfNewPlayers / MAX_PACKAGE_SIZE_VALUE) + 1;
+    const numberOfMessages = Math.floor(numberOfNewPlayers / MAX_PACKAGE_SIZE) + 1;
 
     const bufferSize =
         numberOfMessages * (
@@ -571,7 +572,7 @@ export function eliminations(eliminations: Elimination[]) {
 
     let bufferOffset = 0;
 
-    const numberOfMessages = Math.floor(numberOfEliminations / MAX_PACKAGE_SIZE_VALUE) + 1;
+    const numberOfMessages = Math.floor(numberOfEliminations / MAX_PACKAGE_SIZE) + 1;
 
     const bufferSize =
         numberOfMessages * (

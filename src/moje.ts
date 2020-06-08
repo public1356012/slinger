@@ -73,6 +73,7 @@ export abstract class Thing {
 }
 export class Player extends Thing {
     public hp=1;
+    public reload=5;
     public direction=0;
     public moveIntention=false;
     public useIntention=false;
@@ -104,7 +105,7 @@ export class Obstacle extends Thing {
 }
 export class Projectile extends Thing {
     public damage=2;
-    public ttl = 20;
+    public ttl = 70;
     public speed=70;
     public selfId=0;
     constructor(public id: number, selfId: number, public x: number, public y: number, public size: number, angle: number) {

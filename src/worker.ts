@@ -8,6 +8,7 @@ import { newPlayers, positions, Position, NewPlayer, tick, aimAngles, Angle, Ano
 import { Direction } from './protocol/client/message/action';
 import { Player } from './moje';
 
+const zoneAmount = 5;
 const server = new Server(options.p);
 const clients: { [id: number]: Client } = {};
 const tickRate = 1000 / 30;
@@ -21,7 +22,7 @@ server.on('client', (client) => {
     currId++;
     client.protocol.on('invalidByte', () => {
         if (!(id in world.players))
-            world.removePlayer(id);
+            world.removePlayer(id, 0);
         delete clients[id];
         console.log(`Client (${uusername}) disconnected without notice`);
     });
@@ -99,7 +100,7 @@ server.on('client', (client) => {
 
     client.on('close', () => {
         if (world.players[id] != undefined)
-            world.removePlayer(id);
+            world.removePlayer(id, 0);
         delete clients[id];
         console.log(`Client (${uusername}) disconnected without notice`);
     });
@@ -111,7 +112,8 @@ server.start();
 
 console.log(`Worker ${cluster.worker.id} listening on port ${options.p}`);
 // eslint-disable-next-line no-constant-condition
-
+const informedPlayers: { [id: number]: Set<number> } = { [0]: new Set() };
+const setDestroyed: Set<number> = new Set();
 setInterval(() => {
     //console.log(`Cldisccted wt notice`);
     world.mainPart();
@@ -129,49 +131,83 @@ setInterval(() => {
         const projId: IdentifiableProjectile[] = [];
         const despawn: Despawn[] = [];
         const elimins: Elimination[] = [];
+        const angles: Angle[] = [];
         // for (const player in world.players)
         //     pos.push({ playerId: world.players[player].id, x: world.players[player].x, y: world.players[player].y });
         //newP.push({ playerId: world.players[player].id, x: world.players[player].x ]);
-        const neew = world.clusters[Math.floor(thisPlayer.x / zoneSize) + 1][Math.floor(thisPlayer.y / zoneSize) + 1];
-        for (const players in neew.newPlayers) {
-            newP.push(neew.newPlayers[players]);
-            pos.push(neew.positions[players]);
+        for (let i = -1; i <= 1; i++) {
+            for (let j = -1; j <= 1; j++) {
+                const neew = world.clusters[Math.floor(thisPlayer.x / zoneSize) + zoneAmount + i][Math.floor(thisPlayer.y / zoneSize) + zoneAmount + j];
+                for (const elimin in neew.elimins) {
+                    console.log("Now");
+                    elimins.push(neew.elimins[elimin]);
+                }
+                for (const angle in neew.angles)
+                    angles.push(neew.angles[angle]);
+                for (const players in neew.newPlayers) {
+                    newP.push(neew.newPlayers[players]);
+                    pos.push(neew.positions[players]);
+                }
+                for (const projectile in neew.projectilIden) {
+                    if (informedPlayers[projectile] == undefined)
+                        informedPlayers[projectile] = new Set();
+                    if (informedPlayers[projectile] == undefined || !informedPlayers[projectile].has(thisPlayer.id)) {
+                        informedPlayers[projectile].add(thisPlayer.id);
+                        projId.push(neew.projectilIden[projectile]);
+                    }
+                }
+                for (const projectile in neew.projectiles) {
+                    if (informedPlayers[projectile] == undefined)
+                        informedPlayers[projectile] = new Set();
+                    if (informedPlayers[projectile] == undefined || !informedPlayers[projectile].has(thisPlayer.id)) {
+                        informedPlayers[projectile].add(thisPlayer.id);
+                        proj.push(neew.projectiles[projectile]);
+                    }
+                }
+            }
         }
-        for (const projectile in neew.projectiles)
-            proj.push(neew.projectiles[projectile]);
-        for (const projectile in neew.projectilIden)
-            projId.push(neew.projectilIden[projectile]);
-        for (const desP in neew.despawn)
-            despawn.push(neew.despawn[desP]);
-        for (const elimin in neew.elimins)
-            elimins.push(neew.elimins[elimin]);
-        const ang = aimAngles([{ angle: thisPlayer.angle, playerId: thisPlayer.id }]);
-        //console.log(pos);
+        for (const despawnedProjectile in world.despawn) {
+            console.log(despawnedProjectile);
+            if (informedPlayers[despawnedProjectile] != undefined && informedPlayers[despawnedProjectile].has(thisPlayer.id)) {
+                setDestroyed.add(Number(despawnedProjectile));
+                despawn.push(world.despawn[despawnedProjectile]);
+            }
+        }
+        // for (const desP in neew.despawn)
+        //     despawn.push(neew.despawn[desP]);
+        const ang = aimAngles(angles);
         const fajneDae = positions(pos);
         const faneDae = newPlayers(newP);
         const ticker = tick(tickN);
         client.send(faneDae);
         client.send(fajneDae);
+        if (elimins[0] != undefined && despawn[0] != undefined)
+            console.log("lol");
         if (elimins[0] != undefined) {
             const spokoDan = eliminations(elimins);
             client.send(spokoDan);
         }
         if (despawn[0] != undefined) {
-            const spokoDan = despawns(despawn);
-            client.send(spokoDan);
+            console.log(despawn);
+            const spokoDane = despawns(despawn);
+            client.send(spokoDane);
         }
         if (projId[0] != undefined) {
-            const spokoDan = identifiableProjectiles(projId);
-            client.send(spokoDan);
+            console.log(projId);
+            const spokoDano = identifiableProjectiles(projId);
+            client.send(spokoDano);
         }
         if (proj[0] != undefined) {
-            const spokoDane = anonymousProjectiles(proj);
+            const spokoDanom = anonymousProjectiles(proj);
             //client.send(spokoDane);
         }
         client.send(ang);
         client.send(ticker);
     }
     world.oldNewsProjectiles();
+    // for (const destruction in setDestroyed) {
+    //     if (informedPlayers[] != undefined)
+    // }
     tickN++;
     tickN = tickN % 1000;
 }, tickRate);
