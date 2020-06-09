@@ -33,7 +33,7 @@ export abstract class Thing {
 }
 export class Player extends Thing {
     public hp=10;
-    public weaponType=2;
+    public weaponType=1;
     public reload=5;
     public direction=0;
     public moveIntention=false;

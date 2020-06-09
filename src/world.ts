@@ -122,7 +122,7 @@ export class World {
             }
             if (collision)
                 break;
-            this.changeClustersProjectile(x, y, x2, y2, projectile.id, projectile.angle);
+            this.changeClustersProjectile(x, y, x2, y2, projectile.selfId, projectile.angle);
             projectile.switchPosition(x2, y2);
         }
 
@@ -141,7 +141,8 @@ export class World {
                     player.reload = 25;
                     this.projectiles.push(new Projectile(player.id, this.projId, player.x, player.y, 3, player.angle, 150));
                     this.clusters[Math.floor(player.x / this.zoneSize) + zoneAmount][Math.floor(player.y / this.zoneSize) + zoneAmount].addNewProjectile(this.projId, player.id, player.angle);
-                    this.clusters[Math.floor(player.x / this.zoneSize) + zoneAmount][Math.floor(player.y / this.zoneSize) + zoneAmount].addProjectile(this.projId++, player.x, player.y, player.angle);//
+                    this.clusters[Math.floor(player.x / this.zoneSize) + zoneAmount][Math.floor(player.y / this.zoneSize) + zoneAmount].addProjectile(this.projId, player.x, player.y, player.angle);//
+                    this.projId++;
                 }
                 else if (player.weaponType == 2) {
                     player.reload = 40;
@@ -226,7 +227,10 @@ export class World {
         const y = Math.floor(y1 / this.zoneSize) + zoneAmount;
         this.projectiles.splice(count, 1);
         this.addDespawn(id);
-        delete this.clusters[x][y].projectiles[id];
+        for (let i = -1; i <= 1; i++) {
+            for (let j = -1; j <= 1; j++)
+                delete this.clusters[x + i][y + j].projectiles[id];
+        }
     }
     public addPlayer(id: number, name: string) {
         const tempX = 50;

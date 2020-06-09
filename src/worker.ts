@@ -3,7 +3,7 @@ import * as cluster from 'cluster';
 import options from './options';
 import { Server, Client } from './server';
 import { World, Cluster} from './world';
-import { ack, disconnect } from './protocol/server/message/connection';
+import { ack, disconnect, pong } from './protocol/server/message/connection';
 import { newPlayers, positions, Position, NewPlayer, tick, aimAngles, Angle, AnonymousProjectile, anonymousProjectiles, IdentifiableProjectile, identifiableProjectiles, Despawn, despawns, Elimination, eliminations} from './protocol/server/message/world';
 import { Direction, ItemAction, ItemSlot } from './protocol/client/message/action';
 import { Player } from './objects';
@@ -29,6 +29,10 @@ server.on('client', (client) => {
             world.removePlayer(id, 0);
         delete clients[id];
         console.log(`Client (${uusername}) disconnected without notice`);
+    });
+    client.protocol.on('connection.ping', () => {
+        const fajneDane = pong();
+        client.send(fajneDane);
     });
     client.protocol.on('action.item', (action, slot) => {
         if (!(id in world.players)) {
