@@ -4,9 +4,9 @@ import { readlink } from 'fs';
 import { release } from 'os';
 import options from './options';
 
-const tickRate = 1000 / options.r;
+const tickRate = options.r;
 export abstract class Entity {
-    public speed = 35;
+    public speed = 70;
     public angle=0;
     constructor(public id: number, public type: number, public x: number, public y: number, public size: number) {
     }
@@ -60,7 +60,7 @@ export class Obstacle extends Entity {
 export class Projectile extends Entity {
     public damage=2;
     public ttl = 70;
-    public speed=70;
+    public speed=200;
     public selfId=0;
     constructor(public id: number, selfId: number, public x: number, public y: number, public size: number, angle: number, ttl: number) {
         super(id, 3, x, y, 3);
