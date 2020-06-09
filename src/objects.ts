@@ -4,7 +4,7 @@ import { readlink } from 'fs';
 import { release } from 'os';
 
 const tickRate = 1000 / 30;
-export abstract class Thing {
+export abstract class Entity {
     public speed = 20;
     public angle=0;
     constructor(public id: number, public type: number, public x: number, public y: number, public size: number) {
@@ -19,7 +19,7 @@ export abstract class Thing {
     public moe(angle: number): number[] {
         return [this.x + this.speed * Math.cos(angle) / tickRate, this.y + this.speed * Math.sin(angle) / tickRate];
     }
-    public move(): number[] {//different for player.
+    public move(): number[] {
         return [this.x + this.speed * Math.cos(this.angle) / tickRate, this.y + this.speed * Math.sin(this.angle) / tickRate];
     }
     public inside(x1: number, y1: number, x2: number, y2: number, r: number): boolean {
@@ -31,9 +31,9 @@ export abstract class Thing {
 
     }
 }
-export class Player extends Thing {
+export class Player extends Entity {
     public hp=10;
-    public weaponType=1;
+    public weaponType=0;
     public reload=5;
     public direction=0;
     public moveIntention=false;
@@ -51,15 +51,15 @@ export class Player extends Thing {
         return false;
     }
 }
-export class Obstacle extends Thing {
+export class Obstacle extends Entity {
     constructor(public id: number, public x: number, public y: number, public size: number) {
         super(id, 2, x, y, size);
     }
 }
-export class Projectile extends Thing {
+export class Projectile extends Entity {
     public damage=2;
     public ttl = 70;
-    public speed=70;
+    public speed=100;
     public selfId=0;
     constructor(public id: number, selfId: number, public x: number, public y: number, public size: number, angle: number, ttl: number) {
         super(id, 3, x, y, 3);
@@ -67,5 +67,4 @@ export class Projectile extends Thing {
         this.angle = angle;
         this.selfId = selfId;
     }
-
 }
