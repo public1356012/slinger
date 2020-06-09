@@ -2,8 +2,9 @@ import * as redis from 'redis';
 import { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } from 'constants';
 import { readlink } from 'fs';
 import { release } from 'os';
+import options from './options';
 
-const tickRate = 1000 / 30;
+const tickRate = 1000 / options.r;
 export abstract class Entity {
     public speed = 35;
     public angle=0;
@@ -59,7 +60,7 @@ export class Obstacle extends Entity {
 export class Projectile extends Entity {
     public damage=2;
     public ttl = 70;
-    public speed=100;
+    public speed=70;
     public selfId=0;
     constructor(public id: number, selfId: number, public x: number, public y: number, public size: number, angle: number, ttl: number) {
         super(id, 3, x, y, 3);
