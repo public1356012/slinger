@@ -1,7 +1,10 @@
-import { Player, Obstacle, Projectile } from './moje';
+import { Player, Obstacle, Projectile } from './objects';
 import { newPlayers, positions, Position, NewPlayer, AnonymousProjectile, IdentifiableProjectile, Despawn, Elimination, Angle} from './protocol/server/message/world';
 import { forgeProjectile } from './protocol/entity';
-const zoneAmount = 5;
+import options from './options';
+let zoneAmount = 100 * 1000 / options.z;
+if (zoneAmount < 3)
+    zoneAmount = 3;
 export class Cluster {
     public newPlayers: { [id: number]: NewPlayer } = {};
     public positions: { [id: number]: Position } = {};
@@ -99,15 +102,11 @@ export class World {
             for (const key in this.players) {
                 const player = this.players[key];
                 if (player.id != projectile.id && player.inside(x, y, x2, y2, projectile.size)) {
-                    console.log(player.hp);
                     this.removeProjectile(x, y, projectile.selfId, i);
                     if (player.takeDamage(projectile.damage)) {
                         this.clusters[Math.floor(player.x / this.zoneSize) + zoneAmount][Math.floor(player.y / this.zoneSize) + zoneAmount].addElimination(player.id, projectile.id);
                         this.removePlayer(player.id, 1);
                     }
-                    // this.projectiles.splice(i, 1);
-                    // this.clusters[Math.floor(projectile.x / this.zoneSize) + 1][Math.floor(projectile.y / this.zoneSize) + 1].addDespawn(projectile.selfId);
-                    // delete this.clusters[Math.floor(projectile.x / this.zoneSize) + 1][Math.floor(projectile.y / this.zoneSize) + 1].projectiles[projectile.selfId]; //
                     collision = true;
                     break;
                 }
@@ -132,10 +131,30 @@ export class World {
             if (player.reload > 0)
                 player.reload--;
             if (player.useIntention && player.reload < 1) {
-                player.reload = 15;
-                this.projectiles.push(new Projectile(player.id, this.projId, player.x, player.y, 3, player.angle));
-                this.clusters[Math.floor(player.x / this.zoneSize) + zoneAmount][Math.floor(player.y / this.zoneSize) + zoneAmount].addNewProjectile(this.projId, player.id, player.angle);
-                this.clusters[Math.floor(player.x / this.zoneSize) + zoneAmount][Math.floor(player.y / this.zoneSize) + zoneAmount].addProjectile(this.projId++, player.x, player.y, player.angle);//
+                if (player.weaponType == 0) {
+                    player.reload = 15;
+                    this.projectiles.push(new Projectile(player.id, this.projId, player.x, player.y, 3, player.angle, 70));
+                    this.clusters[Math.floor(player.x / this.zoneSize) + zoneAmount][Math.floor(player.y / this.zoneSize) + zoneAmount].addNewProjectile(this.projId, player.id, player.angle);
+                    this.clusters[Math.floor(player.x / this.zoneSize) + zoneAmount][Math.floor(player.y / this.zoneSize) + zoneAmount].addProjectile(this.projId++, player.x, player.y, player.angle);
+                }
+                else if (player.weaponType == 1) {
+                    player.reload = 25;
+                    this.projectiles.push(new Projectile(player.id, this.projId, player.x, player.y, 3, player.angle, 150));
+                    this.clusters[Math.floor(player.x / this.zoneSize) + zoneAmount][Math.floor(player.y / this.zoneSize) + zoneAmount].addNewProjectile(this.projId, player.id, player.angle);
+                    this.clusters[Math.floor(player.x / this.zoneSize) + zoneAmount][Math.floor(player.y / this.zoneSize) + zoneAmount].addProjectile(this.projId++, player.x, player.y, player.angle);//
+                }
+                else if (player.weaponType == 2) {
+                    player.reload = 40;
+                    this.projectiles.push(new Projectile(player.id, this.projId, player.x, player.y, 3, player.angle, 50));
+                    this.clusters[Math.floor(player.x / this.zoneSize) + zoneAmount][Math.floor(player.y / this.zoneSize) + zoneAmount].addNewProjectile(this.projId, player.id, player.angle);
+                    this.clusters[Math.floor(player.x / this.zoneSize) + zoneAmount][Math.floor(player.y / this.zoneSize) + zoneAmount].addProjectile(this.projId++, player.x, player.y, player.angle);//
+                    this.projectiles.push(new Projectile(player.id, this.projId, player.x, player.y, 3, player.angle + 0.3, 50));
+                    this.clusters[Math.floor(player.x / this.zoneSize) + zoneAmount][Math.floor(player.y / this.zoneSize) + zoneAmount].addNewProjectile(this.projId, player.id, player.angle + 0.3);
+                    this.clusters[Math.floor(player.x / this.zoneSize) + zoneAmount][Math.floor(player.y / this.zoneSize) + zoneAmount].addProjectile(this.projId++, player.x, player.y, player.angle + 0.3);//
+                    this.projectiles.push(new Projectile(player.id, this.projId, player.x, player.y, 3, player.angle - 0.3, 50));
+                    this.clusters[Math.floor(player.x / this.zoneSize) + zoneAmount][Math.floor(player.y / this.zoneSize) + zoneAmount].addNewProjectile(this.projId, player.id, player.angle - 0.3);
+                    this.clusters[Math.floor(player.x / this.zoneSize) + zoneAmount][Math.floor(player.y / this.zoneSize) + zoneAmount].addProjectile(this.projId++, player.x, player.y, player.angle - 0.3);//
+                }
             }
             player.useIntention = false;
             if (!player.moveIntention)
@@ -175,7 +194,6 @@ export class World {
         if (Xer != 0 || Yer != 0) {
             delete this.clusters[x][y].projectiles[id];
             this.clusters[x + Xer][y + Yer].addProjectile(id, x2, y2, angle);
-            console.log("Bang");
         }
         else {
             delete this.clusters[x][y].projectiles[id];
@@ -194,7 +212,6 @@ export class World {
             this.clusters[x + Xer][y + Yer].addAngle(id, angle);
             this.clusters[x + Xer][y + Yer].addNewPlayer(id, name);
             this.clusters[x + Xer][y + Yer].addPosition(id, x2, y2);
-            console.log("Bang");
         }
         else {
             delete this.clusters[x][y].positions[id];
@@ -209,7 +226,6 @@ export class World {
         const y = Math.floor(y1 / this.zoneSize) + zoneAmount;
         this.projectiles.splice(count, 1);
         this.addDespawn(id);
-        //this.clusters[x][y].addDespawn(id);
         delete this.clusters[x][y].projectiles[id];
     }
     public addPlayer(id: number, name: string) {

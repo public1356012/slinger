@@ -11,4 +11,14 @@ export default yargs
         alias  : 'workers',
         default: os.cpus().length,
         type   : 'number',
+    })
+    .option('r', {
+        alias  : 'tickrate',
+        default: 30,
+        type   : 'number',
+    })
+    .option('z', {
+        alias  : 'zonesize',
+        default: 1000,
+        type   : 'number',
     }).argv;
