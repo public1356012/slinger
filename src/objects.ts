@@ -5,7 +5,7 @@ import { release } from 'os';
 
 const tickRate = 1000 / 30;
 export abstract class Entity {
-    public speed = 20;
+    public speed = 35;
     public angle=0;
     constructor(public id: number, public type: number, public x: number, public y: number, public size: number) {
     }
