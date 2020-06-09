@@ -12,5 +12,5 @@ cluster.setupMaster({
     exec: path.resolve(path.dirname(process.argv[1]), 'worker.js'),
 });
 
-for (let i = 0; i < 1; ++i)
+for (let i = 0; i < options.w; ++i)
     cluster.fork();
